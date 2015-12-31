@@ -4,10 +4,13 @@ from __future__ import print_function
 from gmusicapi import Mobileclient
 # Python standard lib imports
 import sys
+import json
 
 '''
 gmusic.py
-
+Python file that handles interactions between Google Music via the un-official
+    API developed by GitHub user simon-weber
+    See more at: github.com/simon-weber/gmusicapi
 @author: Schuyler Martin <schuylermartin45@gmail.com>
 '''
 __author__ = "Schuyler Martin"
@@ -20,6 +23,9 @@ __author__ = "Schuyler Martin"
 #   Google since that seems to be more secure and allows me to get around the
 #   lack of 2-factor auth in this API
 DEFAULT_AUTH = "auth.file"
+
+# ID of a test playlist
+DEBUG_PL1 = "07969458-13bb-4fe5-a9d4-c1122a4fe5bb" # "Girl"
 
 def init(fileName):
     '''
@@ -47,11 +53,36 @@ def init(fileName):
         exit(1)
     return api
 
+def printJson(jstr):
+    '''
+    Pretty prints json string (for debugging purposes)
+    :param: str JSON string to pretty print
+    '''
+    print(json.dumps(jstr, sort_keys=True, indent=4, separators=(',', ': ')))
+
+def getPlaylist(allContent, id):
+    '''
+    Retrieves a complete playlist structure from all playlist content
+    :param: allContent JSON object of all playlists and contents of all lists
+    :param: id Playlist unique id
+    :return: Playlist content of interest or None if no match
+    '''
+    # iterate over list and check for a match
+    for pl in allContent:
+        if (pl['id'] == id):
+            return pl
+    # TODO handle this better(?)
+    return None
+
 def main():
     '''
     Main execution point to test the streaming service
     '''
     api = init(DEFAULT_AUTH)
+    # the API doesn't provide a way to get the contents of just one playlist
+    # so you are forced to get all playlists and songs in the playlist at once
+    allContent = json.loads(json.dumps(api.get_all_user_playlist_contents()))
+    printJson(getPlaylist(allContent, DEBUG_PL1))
 
 if __name__ == '__main__':
     main()
