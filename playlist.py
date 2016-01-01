@@ -1,9 +1,12 @@
 #/usr/bin/python
 from __future__ import print_function
+import pygst
+import gst
 
 '''
 playlist.py
-Python class that represents a playlist
+Python class that represents a playlist and controls playback
+    Uses GStreamer w/ Python Bindings (gstreamer.freedesktop.org)
 @author: Schuyler Martin <schuylermartin45@gmail.com>
 '''
 __author__ = "Schuyler Martin"
@@ -26,13 +29,32 @@ class Playlist:
         # === New info want to track ===
         # current track
         self.cur = 0
+        # music player object for the stream
+        self.player = get.element_factory_make("playbin", "player")
 
-    def current(self):
+    def play(self):
         '''
-        Gets the unique id of the current song playing
+        Play the current song and return the unique id of the song playing
         '''
+        song_id = tracks[self.cur]['id']
+        # halt any previously playing song
+        if (player.get_state() != gst.STATE_NULL):
+            player.set_state(gst.STATE_NULL)
+        # according to the API, these URLs expire so unfortunately we can't
+        # cache/store them somewhere
+        mp3Stream = Mobileclient.get_stream_url(song_id)
+        # set the stream location and begin playing music
+        player.set_property("uri", mp3Stream)
+        player.set_state(gst.STATE_PLAYING)
+        return song_id
+
+    def pause(self):
+        '''
+        Pause the current song and return the unique id of the song playing
+        '''
+        player.set_state(gst.STATE_PAUSED)
         return tracks[self.cur]['id']
-
+        
     def prev(self):
         '''
         Moves to the previous song (wraps-around) and returns that song
@@ -41,7 +63,7 @@ class Playlist:
             self.cur = len(self.tracks) - 1
         else:
             self.cur -= 1
-        return current(self)
+        return play(self)
 
     def next(self):
         '''
@@ -51,7 +73,7 @@ class Playlist:
             self.cur = 0
         else:
             self.cur += 1
-        return current(self)
+        return play(self)
 
 def main():
     '''

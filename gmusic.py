@@ -82,7 +82,8 @@ def main():
     # the API doesn't provide a way to get the contents of just one playlist
     # so you are forced to get all playlists and songs in the playlist at once
     allContent = json.loads(json.dumps(api.get_all_user_playlist_contents()))
-    printJson(getPlaylist(allContent, DEBUG_PL1))
+    playlist = Playlist(getPlaylist(allContent, DEBUG_PL1))
+    playlist.play()
 
 if __name__ == '__main__':
     main()
