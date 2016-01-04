@@ -34,5 +34,10 @@ released. So take this as what you will.
     '''
     1. If you get a '''Warning: cannot open USB device''' error message, try
         running the script with root privleges or copy the provided 
-        51-flirc.rules file into /etc/udev/rules.d/ and then unplug/replug the
-        device.
+        '''51-flirc.rules''' file into /etc/udev/rules.d/ and then unplug/replug
+        the device.
+        1. On the Pi, I had to make some additional changes. I had to change
+            the file name to '''93-flirc.rules'''as some built-in Raspberry Pi
+            udev rules were overriding these new rules. Running 
+            '''sudo udevadm''' was enough to restart the udev daemon to pick-up
+            on these changes.
