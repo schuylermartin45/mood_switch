@@ -24,20 +24,20 @@ released. So take this as what you will.
     2. Flirc is (probably) the GUI setup utility
     3. flirc_util provides extensive tools for interacting with the FLIRC USB
         device, including methods for recording and writing the IR 
-        configuration data to the EEPROM on the device. Running ./flirc_util
+        configuration data to the EEPROM on the device. Running ```./flirc_util```
         with no arguments will dump all available commands to the console.
 
 ## Running the device:
 1. A quick test to see if the device is working properly is to run:
-    '''
+    ```
     ./flirc_util wait
-    '''
-    1. If you get a '''Warning: cannot open USB device''' error message, try
+    ```
+    1. If you get a ```Warning: cannot open USB device``` error message, try
         running the script with root privleges or copy the provided 
-        '''51-flirc.rules''' file into /etc/udev/rules.d/ and then unplug/replug
+        ```51-flirc.rules``` file into /etc/udev/rules.d/ and then unplug/replug
         the device.
         1. On the Pi, I had to make some additional changes. I had to change
-            the file name to '''93-flirc.rules'''as some built-in Raspberry Pi
+            the file name to ```93-flirc.rules``` as some built-in Raspberry Pi
             udev rules were overriding these new rules. Running 
-            '''sudo udevadm''' was enough to restart the udev daemon to pick-up
+            ```sudo udevadm``` was enough to restart the udev daemon to pick-up
             on these changes.
