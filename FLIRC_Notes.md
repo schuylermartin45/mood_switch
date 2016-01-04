@@ -41,3 +41,5 @@ released. So take this as what you will.
             udev rules were overriding these new rules. Running 
             ```sudo udevadm``` was enough to restart the udev daemon to pick-up
             on these changes.
+
+## Interpretting Signals as code
