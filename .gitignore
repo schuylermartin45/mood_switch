@@ -1,2 +1,4 @@
 auth.file
 test_out/
+flirc_lib
+*.pyc
