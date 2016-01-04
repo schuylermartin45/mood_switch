@@ -12,6 +12,7 @@ Mood Switch is a Raspberry Pi-based project in which a Pi will control lighting 
     the lack of documentation that could be gathered from about the USB IR 
     receiver, this library was used to listen to input just from the remote.
     * Link: http://python-evdev.readthedocs.org/
+
 ## FLIRC Utilities
 The FLIRC USB IR reciever used in this project was configured using software
 provided by the manufacturer. It was advertised as having an open SDK available
