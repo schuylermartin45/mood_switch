@@ -43,3 +43,11 @@ released. So take this as what you will.
             on these changes.
 
 ## Interpretting Signals as code
+Initially I thought I would have to reverse-engineer the USB Bus traffic on the
+FLIRC device and develop my own driver for it. But after fiddling around with 
+some Linux USB monitoring and debugging tools (namely ```usbmon``` and 
+```evtest```) I realized that the Raspberry Pi was already interpretting button-
+mappings programmed into the EEPROM of the FLIRC receiver as keyboard input.
+With this information, I was able to find a Python library, ```evdev```, for 
+interpretting key input specifically from this device and was able to leverage
+that to handle input to the Pi.
