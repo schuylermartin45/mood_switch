@@ -1,7 +1,7 @@
 #/usr/bin/python
 from __future__ import print_function
 # Linux's evdev module, wrapped for Python
-from evdev import InputDevice, categorize, ecodes, list_devices
+from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 
 '''
 remote.py
@@ -31,7 +31,6 @@ def dev_init():
     # vendor_id:product_id (as is seen via lsusb and other tools)
     for dev in list_devices():
         dev = InputDevice(dev)
-        
         v_id = hwd_id(dev.info[1])
         p_id = hwd_id(dev.info[2])
         id = str(v_id) + ":" + str(p_id)
@@ -56,8 +55,18 @@ def main():
     devices = dev_init()
     # read from specific device
     for event in devices[USB_IR_ID].read_loop():
-        if event.type == ecodes.EV_KEY:
-            print(categorize(event))
+        # trigger event on key release as this is the end of a button press
+        # sequence (key_down -> key_hold(s) -> key_up)
+        if ((event.type == ecodes.EV_KEY) and (event.value == KeyEvent.key_up)):
+            # interpret command
+            if (event.code == IR_MAP['light']):
+                print("Light") # TODO Actual command
+            if (event.code == IR_MAP['play']):
+                print("Play") # TODO Actual command
+            if (event.code == IR_MAP['next']):
+                print("Next") # TODO Actual command
+            if (event.code == IR_MAP['prev']):
+                print("Prev") # TODO Actual command
 
 if __name__ == '__main__':
     main()
