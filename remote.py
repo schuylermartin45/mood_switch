@@ -19,6 +19,12 @@ IR_MAP = {
     'play'      :   ecodes.KEY_UP,      # >/||
     'next'      :   ecodes.KEY_RIGHT,   # >>|
     'prev'      :   ecodes.KEY_LEFT,    # |<<
+    'up'        :   ecodes.KEY_W,       # ^
+    'down'      :   ecodes.KEY_S,       # v
+    'left'      :   ecodes.KEY_A,       # <
+    'right'     :   ecodes.KEY_D,       # >
+    'enter'     :   ecodes.KEY_ENTER,   # * (center)
+    'return'    :   ecodes.KEY_X,       # Return
 }
 
 def dev_init():
@@ -67,6 +73,6 @@ def main():
                 print("Next") # TODO Actual command
             if (event.code == IR_MAP['prev']):
                 print("Prev") # TODO Actual command
-
+            # TODO: Extra commands?
 if __name__ == '__main__':
     main()
