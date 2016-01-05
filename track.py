@@ -21,6 +21,13 @@ class Track:
         self.id = id
         self.name = name
 
+    def __str__(self):
+        '''
+        __str__
+        :return: String representation of a track
+        '''
+        return str(self.id) + ":" + self.name
+
 def main():
     '''
     Main execution point for testing

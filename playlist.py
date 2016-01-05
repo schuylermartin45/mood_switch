@@ -25,6 +25,16 @@ class Playlist:
         # current track
         self.cur = 0
 
+    def __str__(self):
+        '''
+        __str__
+        :return: String representation of a Playlist
+        '''
+        trackStr = ""
+        for track in self.tracks:
+            trackStr += str(track) + ", "
+        return str(self.id) + ": " + self.name + " -> [ " + trackStr + " ]"
+
     def current(self):
         '''
         Return the unique id of the current song (to play)

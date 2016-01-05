@@ -2,6 +2,8 @@
 from __future__ import print_function
 import pygst
 import gst
+# Local imports
+from musicservice import ServiceException
 
 '''
 playback.py
@@ -11,7 +13,7 @@ Python class that controls playback
 '''
 __author__ = "Schuyler Martin"
 
-class Playlist:
+class Playback:
     '''
     Class that represents the playback system
     '''
@@ -22,16 +24,21 @@ class Playlist:
             service-specific concerns. A service may be a streaming system
             or local media playback
         '''
+        self.service = service
         # dictionary of playlists; playlist id from service is the key
-        self.playlists = service.getPlaylists()
+        self.playlists = self.service.getPlaylists()
+        # if no playlists available, we have a problem to report up
+        if (len(self.playlists.keys()) < 1):
+            raise ServiceException("No Playlists Found")
         # ptr to current playlist (pick the first one by default)
-        self.cur = playlists[self.playlists.keys()[0]]
+        self.cur = self.playlists[self.playlists.keys()[0]]
         # music player object for the stream
         self.player = gst.element_factory_make("playbin", "player")
 
     def play(self):
         '''
-        Play the current song and return the unique id of the song playing
+        Play the current song and return the stream location
+        :return: Stream uri
         '''
         # halt any previously playing song
         if (self.player.get_state() != gst.STATE_NULL):
@@ -46,19 +53,31 @@ class Playlist:
     def pause(self):
         '''
         Pause the current song and return the unique id of the song playing
+        :return: Stream uri
         '''
         self.player.set_state(gst.STATE_PAUSED)
-        return self.tracks[self.cur]['id']
+        return self.service.getStream(self.cur)
+
+    def playPause(self):
+        '''
+        Plays/Pauses the song based on the current player state
+        :return: Results of play() or pause()
+        '''
+        if (self.player.get_state == gst.STATE_PLAYING):
+            return self.pause()
+        return self.play()
         
     def prev(self):
         '''
         Moves to the previous song (wraps-around) and returns that song
+        :return: Results of play() function
         '''
         return self.play()
 
     def next(self):
         '''
         Moves to the next song (wraps-around) and returns that song
+        :return: Results of play() function
         '''
         return self.play()
 

@@ -2,6 +2,10 @@
 from __future__ import print_function
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
+# Local imports
+from musicservice import ServiceException
+from localmusic import LocalService
+from playback import Playback
 
 '''
 remote.py
@@ -26,6 +30,9 @@ IR_MAP = {
     'enter'     :   ecodes.KEY_ENTER,   # * (center)
     'return'    :   ecodes.KEY_X,       # Return
 }
+
+# Path for local music on this device
+LOCAL_PATH = "local_music/"
 
 def dev_init():
     '''
@@ -54,11 +61,33 @@ def hwd_id(i):
         hexStr = "0" + hexStr
     return hexStr
 
+def init_services():
+    '''
+    Initializes music service structures
+    :return: Structure of Playback devices representing each available music
+        service to the Pi
+    '''
+    services = []
+    # attempt to initialize local service. If it fails, don't load the service
+    try:
+        services.append(Playback(LocalService(LOCAL_PATH)))
+    except ServiceException:
+        print("Warning: No local music found")
+    # TODO Other services(?)
+    return services
+
 def main():
     '''
     Main execution point for testing
     '''
     devices = dev_init()
+    # init music services (Playback devices)
+    services = init_services()
+    # service in use
+    cur_service = 0
+    if (len(services) < 1):
+        print("Warning: No services loaded")
+    
     # read from specific device
     for event in devices[USB_IR_ID].read_loop():
         # trigger event on key release as this is the end of a button press
@@ -67,12 +96,16 @@ def main():
             # interpret command
             if (event.code == IR_MAP['light']):
                 print("Light") # TODO Actual command
-            if (event.code == IR_MAP['play']):
-                print("Play") # TODO Actual command
-            if (event.code == IR_MAP['next']):
-                print("Next") # TODO Actual command
-            if (event.code == IR_MAP['prev']):
-                print("Prev") # TODO Actual command
-            # TODO: Extra commands?
+            # ignore music playing commands if there aren't any available 
+            # music services
+            if (len(services) > 0):
+                if (event.code == IR_MAP['play']):
+                    services[cur_service].playPause()
+                if (event.code == IR_MAP['next']):
+                    services[cur_service].next()
+                if (event.code == IR_MAP['prev']):
+                    services[cur_service].next()
+                # TODO: Extra commands?
+
 if __name__ == '__main__':
     main()

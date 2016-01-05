@@ -37,13 +37,19 @@ class MusicService:
 
     def getStream(self, playlist):
         '''
-        Retrieves a complete playlist structure from all playlist content
+        Retrieves the location of the (current) song to play
         :param: playlist Reference to Playlist object to use
         :return: Music stream location
         '''
         # "Enforce" interface
         raise Exception("getStream() not implemented for service " 
             + self.strType)
+
+class ServiceException(Exception):
+    '''
+    Custom exception to throw if there is an issue with a music service
+    '''
+    pass
 
 def main():
     '''
