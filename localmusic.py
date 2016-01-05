@@ -15,6 +15,9 @@ Python file that manages playing songs on local disk
 '''
 __author__ = "Schuyler Martin"
 
+# Tuple of file types that GStreamer can play (that I know of thus far)
+FILE_TYPES = ('.mp3', '.ogg')
+
 class LocalService(MusicService):
     '''
     Music Service class that 
@@ -50,7 +53,8 @@ class LocalService(MusicService):
                     # tracks are files in a directory
                     track_path = os.path.join(pl_path, track)
                     # TODO: Filter for music files only
-                    if (os.path.isfile(track_path)):
+                    if ((os.path.isfile(track_path)) and 
+                            (track_path.endswith(FILE_TYPES))):
                         tracks.append(Track(track_id, track))
                         stream_uri = "file:/" + os.path.abspath(track_path)
                         self.streams[pl_id,track_id] = stream_uri 
@@ -73,13 +77,13 @@ class LocalService(MusicService):
         :param: playlist Reference to Playlist object to use
         :return: Music stream location
         '''
-        return streams[playlist.id][playlist.current()]
+        return self.streams[playlist.id,playlist.current()]
 
 def main():
     '''
     Main execution point for testing
     '''
-    testService = LocalService(".")
+    testService = LocalService("local_music")
     for key in testService.getPlaylists().keys():
         print("Playlist: ")
         print(testService.getPlaylists()[key])

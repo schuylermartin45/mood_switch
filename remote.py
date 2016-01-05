@@ -85,8 +85,12 @@ def main():
     services = init_services()
     # service in use
     cur_service = 0
+    # check to see if a service is available
     if (len(services) < 1):
         print("Warning: No services loaded")
+    # if start playing music!
+    else:
+        services[cur_service].playPause()
     
     # read from specific device
     for event in devices[USB_IR_ID].read_loop():

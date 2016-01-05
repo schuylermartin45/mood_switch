@@ -48,7 +48,7 @@ class Playback:
         # set the stream location and begin playing music
         self.player.set_property("uri", mp3Stream)
         self.player.set_state(gst.STATE_PLAYING)
-        return song_id
+        return mp3Stream
 
     def pause(self):
         '''
