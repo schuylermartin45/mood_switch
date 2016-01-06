@@ -18,11 +18,13 @@ Mood Switch is a Raspberry Pi-based project in which a Pi will control lighting 
 
 ## Dependencies
 * bluetooth, bluez, and alsa
+
 These drivers/scripts/audio frameworks are used to pipe audio from gstreamer
 over a bluetooth dongle to a bluetooth receiver. There are many documents online
 that describe how to set this up but I found the blog below to be vert helpful
     * Link: http://blog.whatgeek.com.pt/2014/04/raspberry-pi-bluetooth-wireless-speaker/
 * FLIRC Utilities
+
 The FLIRC USB IR reciever used in this project was configured using software
 provided by the manufacturer. It was advertised as having an open SDK available
 to developers but that was not the case. Documentation on how I got this device
