@@ -40,9 +40,6 @@ class Playback:
         Play the current song and return the stream location
         :return: Stream uri
         '''
-        # halt any previously playing song
-        if (self.player.get_state() != gst.STATE_NULL):
-            self.player.set_state(gst.STATE_NULL)
         # get location of the stream from the current playlist
         mp3Stream = self.service.getStream(self.cur)
         # set the stream location and begin playing music
@@ -63,7 +60,8 @@ class Playback:
         Plays/Pauses the song based on the current player state
         :return: Results of play() or pause()
         '''
-        if (self.player.get_state == gst.STATE_PLAYING):
+        #if (self.player.get_state()[1] == gst.STATE_PLAYING):
+        if (gst.STATE_PLAYING in self.player.get_state()):
             return self.pause()
         return self.play()
         
