@@ -49,6 +49,9 @@ class LocalService(MusicService):
             if (os.path.isdir(pl_path)):
                 track_id = 0
                 tracks = []
+                # skip if the directory is empty
+                if not(os.listdir(pl_path)):
+                    continue
                 for track in os.listdir(pl_path):
                     # tracks are files in a directory
                     track_path = os.path.join(pl_path, track)
