@@ -34,7 +34,16 @@ class Playback:
         self.cur_id = 0
         self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
         # music player object for the stream
-        self.player = gst.element_factory_make("playbin", "player")
+        self.player = gst.element_factory_make("playbin2", "player")
+        # set playback device to bluetooth
+        alsa_card = gst.element_factory_make("alsasink", "bluetooth")
+        # Notes to self about bluetooth:
+        # - config for alsa is set is /etc/asound.conf
+        # - confic for bluetooth audio is /etc/bluetooth/audio.conf
+        # - bluetooth daemon: /etc/init.d/bluetooth 
+        # - also make sure that there are no other connections to the speaker
+        alsa_card.set_property("device", "bluetooth")
+        self.player.set_property("audio-sink", alsa_card)
         # music player bus to watch for events on
         bus = self.player.get_bus()
         bus.enable_sync_message_emission()
