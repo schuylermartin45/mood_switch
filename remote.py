@@ -4,6 +4,7 @@ from __future__ import print_function
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
 import gobject
+import gst
 # Local imports
 from musicservice import ServiceException
 from localmusic import LocalService
@@ -78,6 +79,38 @@ def init_services():
     # TODO Other services(?)
     return services
 
+def nextService(services, cur_id):
+    '''
+    Moves to the next music service
+    :param: services Listing of all available services
+    :param: cur_id ID (index) of current service in use
+    :return: New service id
+    '''
+    # kill current song playing
+    services[cur_id].pause()
+    if (cur_id == (len(services) - 1 )):
+        cur_id = 0
+    else:
+        cur_id += 1
+    services[cur_id].play()
+    return cur_id
+
+def prevService(services, cur_id):
+    '''
+    Moves to the previous music service
+    :param: services Listing of all available services
+    :param: cur_id ID (index) of current service in use
+    :return: New service id
+    '''
+    # kill current song playing
+    services[cur_id].pause()
+    if (cur_id == 0):
+        cur_id = len(services) - 1
+    else:
+        cur_id -= 1
+    services[cur_id].play()
+    return cur_id
+
 def main():
     '''
     Main execution point for testing
@@ -137,16 +170,24 @@ def main():
                 # === Basic playback Control ===
                 if (event.code == IR_MAP['play']):
                     services[cur_service].playPause()
-                if (event.code == IR_MAP['next']):
+                elif (event.code == IR_MAP['next']):
                     services[cur_service].next()
-                if (event.code == IR_MAP['prev']):
+                elif (event.code == IR_MAP['prev']):
                     services[cur_service].prev()
                 # === Moving bewteen playlists ===
-                if (event.code == IR_MAP['left']):
+                elif (event.code == IR_MAP['left']):
                     services[cur_service].prevPl()
-                if (event.code == IR_MAP['right']):
+                elif (event.code == IR_MAP['right']):
                     services[cur_service].nextPl()
-                # TODO: Extra commands?
+                # === Moving bewteen services ===
+                # currently there is only one service available
+                elif (event.code == IR_MAP['up']):
+                    cur_service = nextService(services, cur_service)
+                elif (event.code == IR_MAP['down']):
+                    cur_service = prevService(services, cur_service)
+                # Ignore other inputs until they are written
+                else:
+                    pass
 
 if __name__ == '__main__':
     main()
