@@ -114,30 +114,30 @@ def main():
     # link: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
     #       _and_the_main_loop/
     while True:
-        # play music by calling the media's context
-        music_context.iteration(True)
-
+        # play music by calling the media's context. Setting to false prevents
+        # this from becoming a blocking call (one iteration is run)
+        music_context.iteration(False)
 
         # read from specific device. This is a blocking loop but it only iterates
         # when input is coming from the device
-        for event in devices[USB_IR_ID].read_loop():
-            # trigger event on key release as this is the end of a button press
-            # sequence (key_down -> key_hold(s) -> key_up)
-            if ((event.type == ecodes.EV_KEY) and 
-                    (event.value == KeyEvent.key_up)):
-                # interpret command
-                if (event.code == IR_MAP['light']):
-                    print("Light") # TODO Actual command
-                # ignore music playing commands if there aren't any available 
-                # music services
-                if (len(services) > 0):
-                    if (event.code == IR_MAP['play']):
-                        services[cur_service].playPause()
-                    if (event.code == IR_MAP['next']):
-                        services[cur_service].next()
-                    if (event.code == IR_MAP['prev']):
-                        services[cur_service].prev()
-                    # TODO: Extra commands?
+        event = devices[USB_IR_ID].read_one()
+        # trigger event on key release as this is the end of a button press
+        # sequence (key_down -> key_hold(s) -> key_up)
+        if ((event != None) and (event.type == ecodes.EV_KEY) and 
+                (event.value == KeyEvent.key_up)):
+            # interpret command
+            if (event.code == IR_MAP['light']):
+                print("Light") # TODO Actual command
+            # ignore music playing commands if there aren't any available 
+            # music services
+            if (len(services) > 0):
+                if (event.code == IR_MAP['play']):
+                    services[cur_service].playPause()
+                if (event.code == IR_MAP['next']):
+                    services[cur_service].next()
+                if (event.code == IR_MAP['prev']):
+                    services[cur_service].prev()
+                # TODO: Extra commands?
 
 if __name__ == '__main__':
     main()

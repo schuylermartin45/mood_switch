@@ -34,6 +34,11 @@ class Playback:
         self.cur = self.playlists[self.playlists.keys()[0]]
         # music player object for the stream
         self.player = gst.element_factory_make("playbin", "player")
+        # music player bus to watch for events on
+        bus = self.player.get_bus()
+        bus.enable_sync_message_emission()
+        bus.add_signal_watch()
+        bus.connect("message", self.msgEvent)
 
     def play(self):
         '''
@@ -60,8 +65,7 @@ class Playback:
         Plays/Pauses the song based on the current player state
         :return: Results of play() or pause()
         '''
-        #if (self.player.get_state()[1] == gst.STATE_PLAYING):
-        if (gst.STATE_PLAYING in self.player.get_state()):
+        if (self.player.get_state()[1] == gst.STATE_PLAYING):
             return self.pause()
         return self.play()
         
@@ -70,6 +74,8 @@ class Playback:
         Moves to the previous song (wraps-around) and returns that song
         :return: Results of play() function
         '''
+        # halt/remove the current song
+        self.player.set_state(gst.STATE_NULL)
         # change song in playlist 
         self.cur.prev()
         return self.play()
@@ -79,9 +85,21 @@ class Playback:
         Moves to the next song (wraps-around) and returns that song
         :return: Results of play() function
         '''
-        # change song in playlist 
+        # perform similar actions as with prev()
+        self.player.set_state(gst.STATE_NULL)
         self.cur.next()
         return self.play()
+
+    def msgEvent(self, bus, message):
+        '''
+        Handles "message" events from the music player's bus
+        :param: bus Player communication bus
+        :param: message Message object from bus
+        '''
+        # if the song ends or encounters an error, try the next song
+        if ((message.type == gst.MESSAGE_EOS) or 
+                (message.type == gst.MESSAGE_ERROR)):
+            self.next()
 
 def main():
     '''
