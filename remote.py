@@ -2,6 +2,8 @@
 from __future__ import print_function
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
+# GStream object that runs music playing thread
+import gobject
 # Local imports
 from musicservice import ServiceException
 from localmusic import LocalService
@@ -80,6 +82,13 @@ def main():
     '''
     Main execution point for testing
     '''
+    # register the music playing thread
+    music_loop = gobject.MainLoop()
+    # see "MUSIC RUN LOOP" label below for further context
+    gobject.threads_init()
+    music_context = music_loop.get_context()
+
+    # initialize input device (IR remote control)
     devices = dev_init()
     # init music services (Playback devices)
     services = init_services()
@@ -92,24 +101,43 @@ def main():
     else:
         services[cur_service].playPause()
     
-    # read from specific device
-    for event in devices[USB_IR_ID].read_loop():
-        # trigger event on key release as this is the end of a button press
-        # sequence (key_down -> key_hold(s) -> key_up)
-        if ((event.type == ecodes.EV_KEY) and (event.value == KeyEvent.key_up)):
-            # interpret command
-            if (event.code == IR_MAP['light']):
-                print("Light") # TODO Actual command
-            # ignore music playing commands if there aren't any available 
-            # music services
-            if (len(services) > 0):
-                if (event.code == IR_MAP['play']):
-                    services[cur_service].playPause()
-                if (event.code == IR_MAP['next']):
-                    services[cur_service].next()
-                if (event.code == IR_MAP['prev']):
-                    services[cur_service].next()
-                # TODO: Extra commands?
+    # MUSIC RUN LOOP
+    # Like many libraries used in this project, the Python bindings for 
+    # GStreamer documentation are lacking. The suggested way to call the media
+    # player is to execute the command "music_loop.run" but this causes a
+    # blocking loop that prevents any of the remote control code from executing.
+    # And it turns out you can't send this job to a new Python thread. The
+    # GStreamer bindings execute C code directly while Python threads are
+    # implemented at the interpretter level. Using the two in tandem will cause
+    # the interpreter to lock-up. Hence why there is this ugly infinite while
+    # loop surrounding this code block. All of this is better explained in this
+    # link: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
+    #       _and_the_main_loop/
+    while True:
+        # play music by calling the media's context
+        music_context.iteration(True)
+
+
+        # read from specific device. This is a blocking loop but it only iterates
+        # when input is coming from the device
+        for event in devices[USB_IR_ID].read_loop():
+            # trigger event on key release as this is the end of a button press
+            # sequence (key_down -> key_hold(s) -> key_up)
+            if ((event.type == ecodes.EV_KEY) and 
+                    (event.value == KeyEvent.key_up)):
+                # interpret command
+                if (event.code == IR_MAP['light']):
+                    print("Light") # TODO Actual command
+                # ignore music playing commands if there aren't any available 
+                # music services
+                if (len(services) > 0):
+                    if (event.code == IR_MAP['play']):
+                        services[cur_service].playPause()
+                    if (event.code == IR_MAP['next']):
+                        services[cur_service].next()
+                    if (event.code == IR_MAP['prev']):
+                        services[cur_service].prev()
+                    # TODO: Extra commands?
 
 if __name__ == '__main__':
     main()

@@ -56,7 +56,7 @@ class LocalService(MusicService):
                     if ((os.path.isfile(track_path)) and 
                             (track_path.endswith(FILE_TYPES))):
                         tracks.append(Track(track_id, track))
-                        stream_uri = "file:/" + os.path.abspath(track_path)
+                        stream_uri = "file://" + os.path.abspath(track_path)
                         self.streams[pl_id,track_id] = stream_uri 
                         track_id += 1
                 # construct final playlist

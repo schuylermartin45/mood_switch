@@ -72,6 +72,8 @@ class Playback:
         Moves to the previous song (wraps-around) and returns that song
         :return: Results of play() function
         '''
+        # change song in playlist 
+        self.cur.prev()
         return self.play()
 
     def next(self):
@@ -79,6 +81,8 @@ class Playback:
         Moves to the next song (wraps-around) and returns that song
         :return: Results of play() function
         '''
+        # change song in playlist 
+        self.cur.next()
         return self.play()
 
 def main():
