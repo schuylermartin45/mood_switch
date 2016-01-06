@@ -113,6 +113,9 @@ def main():
     # loop surrounding this code block. All of this is better explained in this
     # link: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
     #       _and_the_main_loop/
+    # It is worth noting that this loop will fully consume one of the cores
+    # on the Pi (according to htop). I'm not sure if there's a better solution
+    # given the above threading concerns and the need to check remote input
     while True:
         # play music by calling the media's context. Setting to false prevents
         # this from becoming a blocking call (one iteration is run)
@@ -131,12 +134,18 @@ def main():
             # ignore music playing commands if there aren't any available 
             # music services
             if (len(services) > 0):
+                # === Basic playback Control ===
                 if (event.code == IR_MAP['play']):
                     services[cur_service].playPause()
                 if (event.code == IR_MAP['next']):
                     services[cur_service].next()
                 if (event.code == IR_MAP['prev']):
                     services[cur_service].prev()
+                # === Moving bewteen playlists ===
+                if (event.code == IR_MAP['left']):
+                    services[cur_service].prevPl()
+                if (event.code == IR_MAP['right']):
+                    services[cur_service].nextPl()
                 # TODO: Extra commands?
 
 if __name__ == '__main__':

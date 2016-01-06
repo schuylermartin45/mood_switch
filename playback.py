@@ -31,7 +31,8 @@ class Playback:
         if (len(self.playlists.keys()) < 1):
             raise ServiceException("No Playlists Found")
         # ptr to current playlist (pick the first one by default)
-        self.cur = self.playlists[self.playlists.keys()[0]]
+        self.cur_id = 0
+        self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
         # music player object for the stream
         self.player = gst.element_factory_make("playbin", "player")
         # music player bus to watch for events on
@@ -39,6 +40,17 @@ class Playback:
         bus.enable_sync_message_emission()
         bus.add_signal_watch()
         bus.connect("message", self.msgEvent)
+
+    def msgEvent(self, bus, message):
+        '''
+        Handles "message" events from the music player's bus
+        :param: bus Player communication bus
+        :param: message Message object from bus
+        '''
+        # if the song ends or encounters an error, try the next song
+        if ((message.type == gst.MESSAGE_EOS) or 
+                (message.type == gst.MESSAGE_ERROR)):
+            self.next()
 
     def play(self):
         '''
@@ -90,16 +102,34 @@ class Playback:
         self.cur.next()
         return self.play()
 
-    def msgEvent(self, bus, message):
+    def prevPl(self):
         '''
-        Handles "message" events from the music player's bus
-        :param: bus Player communication bus
-        :param: message Message object from bus
+        Moves to the previous Playlist (wraps-around) and returns that song
+        :return: Results of play() function
         '''
-        # if the song ends or encounters an error, try the next song
-        if ((message.type == gst.MESSAGE_EOS) or 
-                (message.type == gst.MESSAGE_ERROR)):
-            self.next()
+        # halt/remove the current song
+        self.player.set_state(gst.STATE_NULL)
+        # change playlist
+        if (self.cur_id == 0):
+            self.cur_id = len(self.playlists.keys()) - 1
+        else:
+            self.cur_id -= 1
+        self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
+        return self.play()
+
+    def nextPl(self):
+        '''
+        Moves to the next Playlist (wraps-around) and returns that song
+        :return: Results of play() function
+        '''
+        # perform similar actions as with prevPl()
+        self.player.set_state(gst.STATE_NULL)
+        if (self.cur_id == (len(self.playlists.keys()) - 1 )):
+            self.cur_id = 0
+        else:
+            self.cur_id += 1
+        self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
+        return self.play()
 
 def main():
     '''
