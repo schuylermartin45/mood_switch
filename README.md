@@ -15,6 +15,8 @@ Mood Switch is a Raspberry Pi-based project in which a Pi will control lighting 
     the lack of documentation that could be gathered from about the USB IR 
     receiver, this library was used to listen to input just from the remote.
     * Link: http://python-evdev.readthedocs.org/
+* **python-daemon**: Python library that provides a framework for making a 
+    UNIX-like daemon process.
 
 ## Dependencies
 * **bluetooth, bluez, and alsa**: 
