@@ -43,7 +43,8 @@ class LocalService(MusicService):
         # (i.e. streams[playlist_id,song_id])
         self.streams = {}
         pl_id = 0
-        for dir in os.listdir(self.path):
+        # sort playlist orderings
+        for dir in sorted(os.listdir(self.path)):
             # directories indicate playlists
             pl_path = os.path.join(self.path, dir)
             if (os.path.isdir(pl_path)):
@@ -52,7 +53,8 @@ class LocalService(MusicService):
                 # skip if the directory is empty
                 if not(os.listdir(pl_path)):
                     continue
-                for track in os.listdir(pl_path):
+                # iterate in sorted order
+                for track in sorted(os.listdir(pl_path)):
                     # tracks are files in a directory
                     track_path = os.path.join(pl_path, track)
                     # TODO: Filter for music files only
