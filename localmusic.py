@@ -16,7 +16,7 @@ Python file that manages playing songs on local disk
 __author__ = "Schuyler Martin"
 
 # Tuple of file types that GStreamer can play (that I know of thus far)
-FILE_TYPES = ('.mp3', '.ogg')
+FILE_TYPES = ('.mp3', '.ogg', '.wav')
 
 class LocalService(MusicService):
     '''

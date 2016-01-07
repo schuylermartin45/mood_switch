@@ -1,6 +1,7 @@
 #/usr/bin/python
 from __future__ import print_function
 import threading
+import os
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
@@ -200,5 +201,6 @@ class Remote():
             self.music_context.iteration(True)
 
 if __name__ == '__main__':
-    remote = Remote("local_music/")
+    curDir = os.path.dirname(os.path.abspath(__file__)) + "/" 
+    remote = Remote(curDir + "local_music/")
     remote.run()

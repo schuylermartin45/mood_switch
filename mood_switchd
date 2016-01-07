@@ -1,0 +1,40 @@
+#!/bin/bash
+#/etc/init.d/mood_switchd
+
+### BEGIN INIT INFO
+# Provides: mood_switchd
+# Required-Start:    $local_fs $syslog $remote_fs
+# Required-Stop:     $local_fs $syslog $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start mood_switch app as daemon
+### END INIT INFO
+
+# Control the script as a daemon
+
+case "$1" in
+    start)
+        # start in the background so that the script can be controlled by
+        # a user
+        /home/pi/projects/mood_switch/mood_switch.sh &
+    ;;
+    stop)
+        # Identify the PID(s) of the mood switch app and kill the children
+        # (by finding all the processes whose parent is mood_switch.sh)
+        MS_PID=$(pgrep mood_switch.sh)
+        kill ${MS_PID} $(pgrep -P ${MS_PID})
+    ;;
+    restart)
+        # stop
+        MS_PID=$(pgrep mood_switch.sh)
+        kill ${MS_PID} $(pgrep -P ${MS_PID})
+        # start
+        /home/pi/projects/mood_switch/mood_switch.sh &
+    ;;
+    *)
+        echo "Usage: mood_switch.sh start|stop|restart"
+        exit 1
+    ;;
+esac
+
+exit 0
