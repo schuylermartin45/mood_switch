@@ -1,5 +1,6 @@
 #/usr/bin/python
 from __future__ import print_function
+import threading
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
@@ -52,6 +53,11 @@ class Remote():
 
         # initialize input device (IR remote control)
         self.devices = self.dev_init()
+        # input thread for remote_control
+        self.in_thread = threading.Thread(target=self.run_input)
+        # setting this variable guarantees the interpetter will handle thread
+        # clean-up on killing this program
+        self.in_thread.daemon = True
         # init music services (Playback devices)
         self.services = self.init_services()
         # service in use
@@ -133,33 +139,9 @@ class Remote():
         self.services[self.cur_id].play()
         return self.cur_id
 
-    def run(self):
-        '''
-        Primary runtime control
-        '''
-        # MUSIC RUN LOOP
-        # Like many libraries used in this project, the Python bindings for 
-        # GStreamer documentation are lacking. The suggested way to call the
-        # player is to execute the command "music_loop.run" but this causes a
-        # blocking loop that prevents any of the controller code from running.
-        # And it turns out you can't send this job to a new Python thread. The
-        # GStreamer bindings execute C code directly while Python threads are
-        # implemented at the interpretter level. Using the two in tandem will
-        # cause the interpreter to lock-up. Hence why there is this ugly while-
-        # true loop surrounding this code block. All of this is better explained
-        # here: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
-        #       _and_the_main_loop/
-        # It is worth noting that this loop will fully consume one of the cores
-        # on the Pi (according to htop). I'm not sure if there's a better
-        # solution given the above threading concerns and the need to check 
-        # remote-controlled input
-        while True:
-            # play music by calling the media's context. Setting to false
-            # prevents this from becoming a blocking call (one iteration is run)
-            self.music_context.iteration(False)
-
-            # read from specific device once
-            event = self.devices[USB_IR_ID].read_one()
+    def run_input(self):
+        # loop input reading from device
+        for event in self.devices[USB_IR_ID].read_loop():
             # trigger event on key release as this is the end of a button press
             # sequence (key_down -> key_hold(s) -> key_up)
             if ((event != None) and (event.type == ecodes.EV_KEY) and 
@@ -191,6 +173,31 @@ class Remote():
                     # Ignore other inputs until they are written
                     else:
                         pass
+
+    def run(self):
+        '''
+        Primary runtime control
+        '''
+        # start looking for input in a separate thread. This allows us to do
+        # some smarter control with the music playback
+        self.in_thread.start()
+        
+        # MUSIC RUN LOOP
+        # Like many libraries used in this project, the Python bindings for 
+        # GStreamer documentation are lacking. The suggested way to call the
+        # player is to execute the command "music_loop.run" but this causes a
+        # blocking loop that prevents any of the controller code from running.
+        # And it turns out you can't send this job to a new Python thread. The
+        # GStreamer bindings execute C code directly while Python threads are
+        # implemented at the interpretter level. Using the two in tandem will
+        # cause the interpreter to lock-up. Hence why there is this ugly while-
+        # true loop surrounding this code block. All of this is better explained
+        # here: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
+        #       _and_the_main_loop/
+        while True:
+            # play music by calling the media's context. Setting to false
+            # prevents this from becoming a blocking call (one iteration is run)
+            self.music_context.iteration(True)
 
 if __name__ == '__main__':
     remote = Remote("local_music/")
