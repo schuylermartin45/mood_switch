@@ -158,8 +158,7 @@ class Remote():
             # prevents this from becoming a blocking call (one iteration is run)
             self.music_context.iteration(False)
 
-            # read from specific device. This is a blocking loop but it only
-            # iterates when input is coming from the device
+            # read from specific device once
             event = self.devices[USB_IR_ID].read_one()
             # trigger event on key release as this is the end of a button press
             # sequence (key_down -> key_hold(s) -> key_up)
