@@ -2,7 +2,6 @@
 from __future__ import print_function
 import threading
 import os
-import sys
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
@@ -29,7 +28,7 @@ USB_IR_ID = "20a0:0004"
 BT_DEV_ID = "48_E2_44_F3_E7_07"
 # Upon disconnecting with the bluetooth device, kill the app so that the
 # wrapping daemon script can start it back up
-BT_ERROR_CODE = 2
+BT_ERROR_CODE = 22
 # Mapping enumerated actions to the IR buttons from the remote
 IR_MAP = {
     # Command   : USB firmware mapping  # Actual button on remote
@@ -59,7 +58,6 @@ class Remote():
         self.main_loop = gobject.MainLoop()
         # see "MUSIC RUN LOOP" label below for further context
         gobject.threads_init()
-        self.music_context = self.main_loop.get_context()
 
         # initialize input device (IR remote control)
         self.devices = self.dev_init()
@@ -192,24 +190,8 @@ class Remote():
         # start looking for input in a separate thread. This allows us to do
         # some smarter control with the music playback
         self.in_thread.start()
-        
-        # MUSIC RUN LOOP
-        # Like many libraries used in this project, the Python bindings for 
-        # GStreamer documentation are lacking. The suggested way to call the
-        # player is to execute the command "music_loop.run" but this causes a
-        # blocking loop that prevents any of the controller code from running.
-        # And it turns out you can't send this job to a new Python thread. The
-        # GStreamer bindings execute C code directly while Python threads are
-        # implemented at the interpretter level. Using the two in tandem will
-        # cause the interpreter to lock-up. Hence why there is this ugly while-
-        # true loop surrounding this code block. All of this is better explained
-        # here: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
-        #       _and_the_main_loop/
-        #while True:
-            # play music by calling the media's context. Setting to false
-            # prevents this from becoming a blocking call (one iteration is run)
-            #self.music_context.iteration(True)
-        remote.main_loop.run()
+        # main runtime loop
+        self.main_loop.run()
 
 def conEvent(iface=None, mbr=None, path=None):
     '''
@@ -219,12 +201,13 @@ def conEvent(iface=None, mbr=None, path=None):
     :param: path Hardware string representing the device ID
     '''
     if ((iface == "org.bluez.AudioSink") and (path.find(BT_DEV_ID))):
-        if (mbr == "Connected"):
-            print("Connected")
-        elif (mbr == "Disconnected"):
-            print("Disconnected")
+        if (mbr == "Disconnected"):
             remote.main_loop.quit()
-            sys.exit(BT_ERROR_CODE)
+            # this is by far the dirtiest way to kill a python script
+            # BUT the signal handler raises an exception when sys.exit() is
+            # used here and that doesn't properly return the correct error code
+            # to OS (to be picked up by the wrapping shell scripts)
+            os._exit(BT_ERROR_CODE)
 
 def bt_init():
     '''
