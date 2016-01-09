@@ -16,13 +16,22 @@ Python class that controls playback
 '''
 __author__ = "Schuyler Martin"
 
+# constant volume values for audio player
+VOLUME_DEFAULT = 1.0
+# the speech files are way quieter than the rest of the music
+VOLUME_SPEECH = 7.0
+
 def mkTextSpeech(text, fileName):
     '''
     Writes a text-to-speech file
     :param: text Text to synthesize
     :param: fileName File name to write-out to
     '''
-    subprocess.call(["espeak", "-w" + fileName, text])
+    # see espeak man page for more info for args
+    subprocess.call(["espeak",
+        "-s 130",
+        "-a 20",
+        "-w" + fileName, text])
 
 class Playback:
     '''
@@ -39,6 +48,8 @@ class Playback:
         '''
         self.service = service
         self.cachePath = cachePath
+        # tracks if we are playing the TTS playlist file now
+        self.playingTTS = False
         # dictionary of playlists; playlist id from service is the key
         self.playlists = self.service.getPlaylists()
         # initialize/use cache info
@@ -75,7 +86,13 @@ class Playback:
         # if the song ends or encounters an error, try the next song
         if ((message.type == gst.MESSAGE_EOS) or 
                 (message.type == gst.MESSAGE_ERROR)):
-            self.next()
+            # if the TTS file is done playing, play the current song
+            if (self.playingTTS):
+                self.playingTTS = False
+                self.play()
+            # else advance to the next song
+            else:
+                self.next()
 
     def init_cache(self):
         '''
@@ -91,16 +108,23 @@ class Playback:
             speakFile = srvPath + pl.name + ".wav"
             if not(os.path.exists(speakFile)):
                 # write file to cache
-                mkTextSpeech(pl.name, speakFile)
-            pl.ttsFile = speakFile
+                mkTextSpeech("Playing: " + pl.name + ".", speakFile)
+            pl.ttsFile = "file://" + speakFile
 
     def play(self):
         '''
         Play the current song and return the stream location
         :return: Stream uri
         '''
-        # get location of the stream from the current playlist
-        mp3Stream = self.service.getStream(self.cur)
+        pl = self.playlists[self.playlists.keys()[self.cur_id]]
+        # special case for playing the text-to-speech message
+        if ((self.playingTTS) and (pl.ttsFile != None)):
+            self.player.set_property("volume", VOLUME_SPEECH)
+            mp3Stream = pl.ttsFile
+        else:
+            self.player.set_property("volume", VOLUME_DEFAULT)
+            # get location of the stream from the current playlist
+            mp3Stream = self.service.getStream(self.cur)
         # set the stream location and begin playing music
         self.player.set_property("uri", mp3Stream)
         self.player.set_state(gst.STATE_PLAYING)
@@ -149,6 +173,8 @@ class Playback:
         Moves to the previous Playlist (wraps-around) and returns that song
         :return: Results of play() function
         '''
+        # attempt to play the identifying playlist name
+        self.playingTTS = True
         # halt/remove the current song
         self.player.set_state(gst.STATE_NULL)
         # change playlist
@@ -165,6 +191,7 @@ class Playback:
         :return: Results of play() function
         '''
         # perform similar actions as with prevPl()
+        self.playingTTS = True
         self.player.set_state(gst.STATE_NULL)
         if (self.cur_id == (len(self.playlists.keys()) - 1 )):
             self.cur_id = 0
