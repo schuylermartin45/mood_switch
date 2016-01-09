@@ -16,7 +16,7 @@ Python class that controls playback
 '''
 __author__ = "Schuyler Martin"
 
-def mkTextSpeech(txt, fileName):
+def mkTextSpeech(text, fileName):
     '''
     Writes a text-to-speech file
     :param: text Text to synthesize
@@ -42,7 +42,7 @@ class Playback:
         # dictionary of playlists; playlist id from service is the key
         self.playlists = self.service.getPlaylists()
         # initialize/use cache info
-        init_cache()
+        self.init_cache()
         # if no playlists available, we have a problem to report up
         if (len(self.playlists.keys()) < 1):
             raise ServiceException("No Playlists Found")
@@ -83,11 +83,11 @@ class Playback:
             that provides the following:
             - Tracks/builds playlist text-to-speech information
         '''
-        srvPath = self.cachePath + self.service.strType + "/")
+        srvPath = self.cachePath + self.service.strType + "/"
         if not(os.path.exists(srvPath)):
             os.makedirs(srvPath)
         # generate any missing playlist text-to-speech data
-        for pl in self.playlists:
+        for ids, pl in self.playlists.iteritems():
             speakFile = srvPath + pl.name + ".wav"
             if not(os.path.exists(speakFile)):
                 # write file to cache

@@ -3,3 +3,4 @@ test_out/
 flirc_lib
 *.pyc
 local_music/
+.mood_switch_cache/

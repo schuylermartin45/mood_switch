@@ -119,7 +119,7 @@ class Remote():
             # make directory if missing
             if not(os.path.exists(cachePath)):
                 os.makedirs(cachePath)
-            local_service = LocalService(self.run_dir + "local_music/"))
+            local_service = LocalService(self.run_dir + "local_music/")
             services.append(Playback(local_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
