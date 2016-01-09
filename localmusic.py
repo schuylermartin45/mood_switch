@@ -57,7 +57,6 @@ class LocalService(MusicService):
                 for track in sorted(os.listdir(pl_path)):
                     # tracks are files in a directory
                     track_path = os.path.join(pl_path, track)
-                    # TODO: Filter for music files only
                     if ((os.path.isfile(track_path)) and 
                             (track_path.endswith(FILE_TYPES))):
                         tracks.append(Track(track_id, track))
@@ -67,7 +66,6 @@ class LocalService(MusicService):
                 # construct final playlist
                 self.playlists[pl_id] = Playlist(pl_id, dir, tracks)
                 pl_id += 1
-                
 
     def getPlaylists(self):
         '''

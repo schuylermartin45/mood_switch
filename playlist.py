@@ -24,6 +24,9 @@ class Playlist:
         self.tracks = tracks
         # current track
         self.cur = 0
+        # file that stores the text-to-speech read-out of the file (to be set
+        # by the playback service)
+        self.ttsFile = None
 
     def __str__(self):
         '''

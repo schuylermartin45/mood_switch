@@ -1,5 +1,8 @@
 #/usr/bin/python
 from __future__ import print_function
+import os
+from os.path import *
+import subprocess
 import pygst
 import gst
 # Local imports
@@ -13,20 +16,33 @@ Python class that controls playback
 '''
 __author__ = "Schuyler Martin"
 
+def mkTextSpeech(txt, fileName):
+    '''
+    Writes a text-to-speech file
+    :param: text Text to synthesize
+    :param: fileName File name to write-out to
+    '''
+    subprocess.call(["espeak", "-w" + fileName, text])
+
 class Playback:
     '''
     Class that represents the playback system
     '''
-    def __init__(self, service):
+    def __init__(self, service, cachePath):
         '''
         Constructor
         :param: service Reference to service "interface" that will resolve
             service-specific concerns. A service may be a streaming system
             or local media playback
+        :param: Top-level directory to store caching information for this
+            music service/playback object type
         '''
         self.service = service
+        self.cachePath = cachePath
         # dictionary of playlists; playlist id from service is the key
         self.playlists = self.service.getPlaylists()
+        # initialize/use cache info
+        init_cache()
         # if no playlists available, we have a problem to report up
         if (len(self.playlists.keys()) < 1):
             raise ServiceException("No Playlists Found")
@@ -60,6 +76,23 @@ class Playback:
         if ((message.type == gst.MESSAGE_EOS) or 
                 (message.type == gst.MESSAGE_ERROR)):
             self.next()
+
+    def init_cache(self):
+        '''
+        Initialize and use cache info. There is a cache for each service
+            that provides the following:
+            - Tracks/builds playlist text-to-speech information
+        '''
+        srvPath = self.cachePath + self.service.strType + "/")
+        if not(os.path.exists(srvPath)):
+            os.makedirs(srvPath)
+        # generate any missing playlist text-to-speech data
+        for pl in self.playlists:
+            speakFile = srvPath + pl.name + ".wav"
+            if not(os.path.exists(speakFile)):
+                # write file to cache
+                mkTextSpeech(pl.name, speakFile)
+            pl.ttsFile = speakFile
 
     def play(self):
         '''

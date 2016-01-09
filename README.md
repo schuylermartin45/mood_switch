@@ -31,4 +31,6 @@ to developers but that was not the case. Documentation on how I got this device
 to work with the Pi is in a separae file, ```FLIRC_Notes.md```. The shortened
 version of the story for primary README is that I eventually got the Pi to
 interpret the signals from the remote as keyboard input.
-
+* **espeak**:
+Text-to-speech synthesis used to alert the user which playlist is playing upon
+switching playlists.

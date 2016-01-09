@@ -3,7 +3,8 @@ from __future__ import print_function
 
 '''
 musicservice.py
-Parent class for all music services. "Enforces" a strict interface
+Parent class for all music services. "Enforces" a strict interface.
+These classes are used by the Playback class.
 @author: Schuyler Martin <schuylermartin45@gmail.com>
 '''
 __author__ = "Schuyler Martin"

@@ -2,6 +2,7 @@
 from __future__ import print_function
 import threading
 import os
+from os.path import *
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
@@ -48,12 +49,12 @@ class Remote():
     '''
     Class for "Remote" which controls most of the runtime code
     '''
-    def __init__(self, local_path):
+    def __init__(self, run_dir):
         '''
         Constructor
-        :param: local_path Path for the local music service's directory
+        :param: run_dir Path for the local music service's directory
         '''
-        self.local_path = local_path
+        self.run_dir = run_dir
         # register the music playing thread
         self.main_loop = gobject.MainLoop()
         # see "MUSIC RUN LOOP" label below for further context
@@ -114,7 +115,12 @@ class Remote():
         # attempt to initialize local service. If it fails, don't load that
         # service
         try:
-            services.append(Playback(LocalService(self.local_path)))
+            cachePath = self.run_dir + ".mood_switch_cache/"
+            # make directory if missing
+            if not(os.path.exists(cachePath)):
+                os.makedirs(cachePath)
+            local_service = LocalService(self.run_dir + "local_music/"))
+            services.append(Playback(local_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
         # TODO Other services(?)
@@ -233,6 +239,6 @@ if __name__ == '__main__':
     # initialize listening to bluetooth connections
     bt_init()
     curDir = os.path.dirname(os.path.abspath(__file__)) + "/"
-    remote = Remote(curDir + "local_music/")
+    remote = Remote(curDir)
     # start looking for input and start a playback loop
     remote.run()
