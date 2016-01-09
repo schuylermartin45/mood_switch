@@ -2,6 +2,7 @@
 from __future__ import print_function
 import threading
 import os
+import sys
 # Linux's evdev module, wrapped for Python
 from evdev import InputDevice, categorize, ecodes, list_devices, KeyEvent
 # GStream object that runs music playing thread
@@ -26,6 +27,9 @@ __author__ = "Schuyler Martin"
 USB_IR_ID = "20a0:0004"
 # Bluetooth device ID (used for detecting connection/disconnection)
 BT_DEV_ID = "48_E2_44_F3_E7_07"
+# Upon disconnecting with the bluetooth device, kill the app so that the
+# wrapping daemon script can start it back up
+BT_ERROR_CODE = 2
 # Mapping enumerated actions to the IR buttons from the remote
 IR_MAP = {
     # Command   : USB firmware mapping  # Actual button on remote
@@ -52,10 +56,10 @@ class Remote():
         '''
         self.local_path = local_path
         # register the music playing thread
-        music_loop = gobject.MainLoop()
+        self.main_loop = gobject.MainLoop()
         # see "MUSIC RUN LOOP" label below for further context
         gobject.threads_init()
-        self.music_context = music_loop.get_context()
+        self.music_context = self.main_loop.get_context()
 
         # initialize input device (IR remote control)
         self.devices = self.dev_init()
@@ -68,8 +72,6 @@ class Remote():
         self.services = self.init_services()
         # service in use
         self.cur_id = 0
-        # Assume bluetooth is connected
-        self.is_BT_Connect = True
         # check to see if a service is available
         if (len(self.services) < 1):
             print("Warning: No services loaded")
@@ -203,52 +205,51 @@ class Remote():
         # true loop surrounding this code block. All of this is better explained
         # here: http://www.jejik.com/articles/2007/01/python-gstreamer_threading
         #       _and_the_main_loop/
-        while self.is_BT_Connect:
+        #while True:
             # play music by calling the media's context. Setting to false
             # prevents this from becoming a blocking call (one iteration is run)
-            self.music_context.iteration(True)
+            #self.music_context.iteration(True)
+        remote.main_loop.run()
 
-    def conEvent(self, iface=None, mbr=None, path=None):
-        '''
-        Event handling connection/disconnection of the bluetooth device
-        :param: iface Hardware string representing the interface
-        :param: mbr Type of event
-        :param: path Hardware string representing the device ID
-        '''
-        print(threading.current_thread())
-        if ((iface == "org.bluez.AudioSink") and (path.find(BT_DEV_ID))):
-            if (mbr == "Connected"):
-                print("Connected")
-            elif (mbr == "Disconnected"):
-                print("Disconnected")
-                self.is_BT_Connect = False
-                curDir = os.path.dirname(os.path.abspath(__file__)) + "/" 
-                self = Remote(curDir + "local_music/")
-                self.run()
+def conEvent(iface=None, mbr=None, path=None):
+    '''
+    Event handling connection/disconnection of the bluetooth device
+    :param: iface Hardware string representing the interface
+    :param: mbr Type of event
+    :param: path Hardware string representing the device ID
+    '''
+    if ((iface == "org.bluez.AudioSink") and (path.find(BT_DEV_ID))):
+        if (mbr == "Connected"):
+            print("Connected")
+        elif (mbr == "Disconnected"):
+            print("Disconnected")
+            remote.main_loop.quit()
+            sys.exit(BT_ERROR_CODE)
 
-    def bt_init(self):
-        '''
-        "Initialize" the bluetooth device by setting up a method for detecting
-            that the device has been connected/disconnected
-        '''
-        # handle connection/disconnection scenarios by looking at the dbus
-        # and the bluetooth adapter
-        btBus = dbus.SystemBus(mainloop=DBusGMainLoop())
-        btObj = btBus.get_object("org.bluez", "/")
-        iface = dbus.Interface(btObj, "org.bluez.Manager")
-        adptrPath = iface.DefaultAdapter()
-        btDev = btBus.get_object("org.bluez", adptrPath + "/dev_" + BT_DEV_ID)
-        # setup signalling events
-        btDev.connect_to_signal("Disconnected", self.conEvent, 
-            interface_keyword="iface", member_keyword="mbr", 
-            path_keyword="path")
-        btDev.connect_to_signal("Connected", self.conEvent, 
-            interface_keyword="iface", member_keyword="mbr", 
-            path_keyword="path")
+def bt_init():
+    '''
+    "Initialize" the bluetooth device by setting up a method for detecting
+        that the device has been connected/disconnected
+    '''
+    # handle connection/disconnection scenarios by looking at the dbus
+    # and the bluetooth adapter
+    btBus = dbus.SystemBus(mainloop=DBusGMainLoop())
+    btObj = btBus.get_object("org.bluez", "/")
+    iface = dbus.Interface(btObj, "org.bluez.Manager")
+    adptrPath = iface.DefaultAdapter()
+    btDev = btBus.get_object("org.bluez", adptrPath + "/dev_" + BT_DEV_ID)
+    # setup signalling events
+    btDev.connect_to_signal("Disconnected", conEvent, 
+        interface_keyword="iface", member_keyword="mbr", 
+        path_keyword="path")
+    btDev.connect_to_signal("Connected", conEvent, 
+        interface_keyword="iface", member_keyword="mbr", 
+        path_keyword="path")
 
 if __name__ == '__main__':
     # initialize listening to bluetooth connections
+    bt_init()
     curDir = os.path.dirname(os.path.abspath(__file__)) + "/"
     remote = Remote(curDir + "local_music/")
-    #remote.bt_init()
+    # start looking for input and start a playback loop
     remote.run()
