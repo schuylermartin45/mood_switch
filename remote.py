@@ -69,15 +69,17 @@ class Remote():
         # setting this variable guarantees the interpetter will handle thread
         # clean-up on killing this program
         self.in_thread.daemon = True
-        # init music services (Playback devices)
-        self.services = self.init_services()
         # service in use
         self.cur_id = 0
+        # init music services (Playback devices)
+        self.services = self.init_services()
         # check to see if a service is available
         if (len(self.services) < 1):
             print("Warning: No services loaded")
         # if start playing music!
         else:
+            # initialize event handling
+            self.updateMsgEvent(rmSignal=False)
             self.services[self.cur_id].playPause()
     
     def hwd_id(self, i):
@@ -125,14 +127,28 @@ class Remote():
             local_service = LocalService(self.run_dir + "local_music/")
             radio_service = RadioService()
             # init a single player for all music services
-            player = Playback.constructPlayer()
+            self.player = Playback.constructPlayer()
             # add services
-            services.append(Playback(player, local_service, cachePath))
-            services.append(Playback(player, radio_service, cachePath))
+            services.append(Playback(self.player, local_service, cachePath))
+            services.append(Playback(self.player, radio_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
         # TODO Other services(?)
         return services
+
+    def updateMsgEvent(self, rmSignal=True):
+        '''
+        Updates how various play-time events are handled when the playing
+            service is changed
+        :param: rmSignal Attempts to remove signal first (True by default)
+        '''
+        # music player bus to watch for events on
+        bus = self.player.get_bus()
+        if (rmSignal):
+            bus.remove_signal_watch()
+        bus.enable_sync_message_emission()
+        bus.add_signal_watch()
+        bus.connect("message", self.services[self.cur_id].msgEvent)
 
     def nextService(self):
         '''
@@ -145,6 +161,8 @@ class Remote():
             self.cur_id = 0
         else:
             self.cur_id += 1
+        # update how we handle events
+        self.updateMsgEvent()
         self.services[self.cur_id].play()
         return self.cur_id
 
@@ -159,6 +177,8 @@ class Remote():
             self.cur_id = len(self.services) - 1
         else:
             self.cur_id -= 1
+        # update how we handle events
+        self.updateMsgEvent()
         self.services[self.cur_id].play()
         return self.cur_id
 

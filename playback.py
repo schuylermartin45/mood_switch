@@ -88,11 +88,6 @@ class Playback:
         self.cur_id = 0
         self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
         self.player = player
-        # music player bus to watch for events on
-        bus = self.player.get_bus()
-        bus.enable_sync_message_emission()
-        bus.add_signal_watch()
-        bus.connect("message", self.msgEvent)
 
     def msgEvent(self, bus, message):
         '''
