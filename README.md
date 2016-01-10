@@ -1,9 +1,9 @@
 # mood_switch
-Mood Switch is a Raspberry Pi-based project that controls lighting (flips a 
+Mood switch is a Raspberry Pi-based project that controls lighting (flips a 
 lightswitch) and music from a stereo speaker remote.
 
 ## About
-The basic premise is that the “mood switch” is it is a Raspberry Pi 
+The basic premise is that the "mood switch" is it is a Raspberry Pi 
 media system permanently mounted next to a room's lightswitch. The Pi is 
 controlled by an IR stereo system remote. One button controls the lighting
 in the room while other buttons control the music platform. The Pi plays
@@ -17,8 +17,8 @@ that change and prep itself for when the Pi is reconnected to the speakers.
 This "always on" approach makes the mood switch a very convenient music system.
 
 ## Features
-* **Plugins**: The system is designed to have “plugin” music services via an 
-“interface”. Currently there is one music service available that plays songs
+* **Plugins**: The system is designed to have "plugin" music services via an 
+"interface". Currently there is one music service available that plays songs
 locally off of the Pi. The hope is that other online streaming services can
 be added down the line.
 * **Intuitive**: Everything is controlled by a single IR remote with common
