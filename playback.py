@@ -29,7 +29,7 @@ def mkTextSpeech(text, fileName):
     '''
     # see espeak man page for more info for args
     subprocess.call(["espeak",
-        "-s 130",
+        "-s 120",
         "-a 20",
         "-w" + fileName, text])
 
@@ -42,14 +42,14 @@ class Playback:
         Constructor
         :param: service Reference to service "interface" that will resolve
             service-specific concerns. A service may be a streaming system
-            or local media playback
-        :param: Top-level directory to store caching information for this
-            music service/playback object type
+            usic service/playback object type
         '''
         self.service = service
         self.cachePath = cachePath
         # tracks if we are playing the TTS playlist file now
-        self.playingTTS = False
+        self.pl_TTS = False
+        # tracks if we are playing the TTS shuffle commands now
+        self.shuffle_TTS = False
         # dictionary of playlists; playlist id from service is the key
         self.playlists = self.service.getPlaylists()
         # initialize/use cache info
@@ -87,8 +87,11 @@ class Playback:
         if ((message.type == gst.MESSAGE_EOS) or 
                 (message.type == gst.MESSAGE_ERROR)):
             # if the TTS file is done playing, play the current song
-            if (self.playingTTS):
-                self.playingTTS = False
+            if (self.pl_TTS):
+                self.pl_TTS = False
+                self.play()
+            elif (self.shuffle_TTS):
+                self.shuffle_TTS = False
                 self.play()
             # else advance to the next song
             else:
@@ -100,6 +103,15 @@ class Playback:
             that provides the following:
             - Tracks/builds playlist text-to-speech information
         '''
+        # in the cache path, check to see if the shuffle sounds are there
+        self.shuffle_Files = {}
+        self.shuffle_Files[True] = self.cachePath + "shuffleOn.wav"
+        self.shuffle_Files[False] = self.cachePath + "shuffleOff.wav"
+        if not(os.path.exists(self.shuffle_Files[True])):
+            mkTextSpeech("Setting shuffle on ", self.shuffle_Files[True])
+        if not(os.path.exists(self.shuffle_Files[False])):
+            mkTextSpeech("Setting shuffle off", self.shuffle_Files[False])
+        # for each service
         srvPath = self.cachePath + self.service.strType + "/"
         if not(os.path.exists(srvPath)):
             os.makedirs(srvPath)
@@ -118,7 +130,7 @@ class Playback:
         '''
         pl = self.playlists[self.playlists.keys()[self.cur_id]]
         # special case for playing the text-to-speech message
-        if ((self.playingTTS) and (pl.ttsFile != None)):
+        if ((self.pl_TTS) and (pl.ttsFile != None)):
             self.player.set_property("volume", VOLUME_SPEECH)
             mp3Stream = pl.ttsFile
         else:
@@ -168,13 +180,29 @@ class Playback:
         self.cur.next()
         return self.play()
 
+    def shuffle(self):
+        '''
+        Shuffles/deshuffles every playlist (keeps a consistent state across all
+        '''
+        shuffle_TTS = True
+        # play appropriate sound notification
+        ttsFile = "file://" + self.shuffle_Files[not(self.cur.isShuffle)]
+        self.player.set_property("volume", VOLUME_SPEECH)
+        # all playlists should have the same shuffle state
+        for ids, pl in self.playlists.iteritems():
+            pl.shuffle()
+        # play audio clip messaging
+        self.player.set_state(gst.STATE_NULL)
+        self.player.set_property("uri", ttsFile)
+        self.player.set_state(gst.STATE_PLAYING)
+
     def prevPl(self):
         '''
         Moves to the previous Playlist (wraps-around) and returns that song
         :return: Results of play() function
         '''
         # attempt to play the identifying playlist name
-        self.playingTTS = True
+        self.pl_TTS = True
         # halt/remove the current song
         self.player.set_state(gst.STATE_NULL)
         # change playlist
@@ -191,7 +219,7 @@ class Playback:
         :return: Results of play() function
         '''
         # perform similar actions as with prevPl()
-        self.playingTTS = True
+        self.pl_TTS = True
         self.player.set_state(gst.STATE_NULL)
         if (self.cur_id == (len(self.playlists.keys()) - 1 )):
             self.cur_id = 0

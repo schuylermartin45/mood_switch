@@ -1,6 +1,7 @@
 #/usr/bin/python
 from __future__ import print_function
-
+import random
+import copy
 '''
 playlist.py
 Python class that represents a playlist
@@ -21,7 +22,12 @@ class Playlist:
         '''
         self.id = id
         self.name = name
-        self.tracks = tracks
+        # keep two copies of the tracks (used for suffling)
+        self.tracks_original = copy.deepcopy(tracks)
+        self.tracks_shuffle = copy.deepcopy(tracks)
+        self.isShuffle = False
+        # default to pointing to the original
+        self.tracks = self.tracks_original
         # current track
         self.cur = 0
         # file that stores the text-to-speech read-out of the file (to be set
@@ -67,6 +73,18 @@ class Playlist:
         else:
             self.cur += 1
         return self.current()
+
+    def shuffle(self):
+        '''
+        Shuffles/de-shuffles a playlist
+        :return: Unique id of the song to play
+        '''
+        self.isShuffle = not(self.isShuffle)
+        if (self.isShuffle):
+            random.shuffle(self.tracks_shuffle)
+            self.tracks = self.tracks_shuffle
+        else:
+            self.tracks = self.tracks_original
 
 def main():
     '''

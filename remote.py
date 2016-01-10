@@ -37,6 +37,7 @@ IR_MAP = {
     'play'      :   ecodes.KEY_UP,      # >/||
     'next'      :   ecodes.KEY_RIGHT,   # >>|
     'prev'      :   ecodes.KEY_LEFT,    # |<<
+    'stop'      :   ecodes.KEY_C,       # []
     'up'        :   ecodes.KEY_W,       # ^
     'down'      :   ecodes.KEY_S,       # v
     'left'      :   ecodes.KEY_A,       # <
@@ -185,6 +186,9 @@ class Remote():
                         self.nextService()
                     elif (event.code == IR_MAP['down']):
                         self.prevService()
+                    # shuffle current playlist
+                    elif (event.code == IR_MAP['stop']):
+                        self.services[self.cur_id].shuffle()
                     # Ignore other inputs until they are written
                     else:
                         pass
