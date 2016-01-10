@@ -35,7 +35,7 @@ class LocalService(MusicService):
                     |-- Song 0
                 etc...
         '''
-        MusicService.__init__(self, "Local Service")
+        MusicService.__init__(self, "Local Service", "playlist")
         self.path = path
         self.playlists = {}
         # dictionary (acting like a multi-dimensional array) that stores 

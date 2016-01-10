@@ -12,10 +12,15 @@ __author__ = "Schuyler Martin"
 
 # dictionary of known stations
 STATION_DICT = {
-    'Florida Rock' : "http://www.internet-radio.com/servers/tools/playlistgenerator/?u=http://us1.internet-radio.com:8105/listen.pls&t=.pls",
-    'City FM' : "http://www.internet-radio.com/servers/tools/playlistgenerator/?u=http://streams.cityfm.nl:8043/listen.pls&t=.pls",
-    'BBC Radio 2' : "http://www.bbc.co.uk/radio/listen/live/r2_aaclca.pls",
-    'test' : "http://radio.hbr1.com:19800/ambient.ogg",
+    'Ambient noise test' : "http://radio.hbr1.com:19800/ambient.ogg",
+    'Russian Revolution Radio' : "http://revolutionradio.ru/live.ogg",
+    'Radio Rock 1' : "http://stream.radioreklama.bg:80/radio1rock.ogg",
+    'WPCE The Classical Station' : "http://audio-ogg.ibiblio.org:8000/wpce.ogg",
+    'UK Absolute Classic Rock' : "http://icecast.timlradio.co.uk:80/absoluteradio.co.uk/acflac.ogg",
+    'UK Sixties Radio' : "http://icecast.timlradio.co.uk:80/absoluteradio.co.uk/a6flac.ogg",
+    'UK Seventies Radio' : "http://icecast.timlradio.co.uk:80/absoluteradio.co.uk/a7flac.ogg",
+    'UK Eighties Radio' : "http://icecast.timlradio.co.uk:80/absoluteradio.co.uk/a8flac.ogg",
+    'Hungarian Jazz Radio' : "http://194.38.105.41:8000/jazzradio_192.ogg",
 }
 
 class RadioService(MusicService):
@@ -27,7 +32,7 @@ class RadioService(MusicService):
         '''
         Constructor
         '''
-        MusicService.__init__(self, "Radio Service")
+        MusicService.__init__(self, "Radio Service", "station")
         self.stations = {}
         id = 0
         for name, url in STATION_DICT.iteritems():

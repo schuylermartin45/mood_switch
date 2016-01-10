@@ -13,12 +13,16 @@ class MusicService:
     '''
     Music Service class "enforces" a common interface for all music services
     '''
-    def __init__(self, strType):
+    def __init__(self, strType, plTypeTTS):
         '''
         Constructor
         :param: strType String version of the service type's name
+        :param: plTypeTTS String indicating what the playlist is over TTS
+            (For example, radio stations may report "Playing station x" over
+            "Playing playlist x")
         '''
         self.strType = strType
+        self.plTypeTTS = plTypeTTS
 
     def __str__(self):
         '''

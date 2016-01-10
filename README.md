@@ -45,9 +45,11 @@ currently playing and the current shuffle state.
     * Link: http://python-evdev.readthedocs.org/
 
 ## Dependencies
-* **Raspbian**:
-This project was written on/for a Raspberry Pi 2 running the text-only version
-of the Raspbian OS.
+* **Raspbian w/ X11**:
+This project was written on/for a Raspberry Pi 2. I wanted this project to
+run in a "text-only" environment but unfortunately I could not get Gstreamer 
+to stream remotely without whining about not having X11 available. Odd, since
+I was testing audio streams.
 * **bluetooth, bluez, and alsa**: 
 These drivers/scripts/audio frameworks are used to pipe audio from gstreamer
 over a bluetooth dongle to a bluetooth receiver. There are many documents online

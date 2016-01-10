@@ -79,7 +79,10 @@ class Remote():
         # if start playing music!
         else:
             # initialize event handling
-            self.updateMsgEvent(rmSignal=False)
+            bus = self.player.get_bus()
+            bus.enable_sync_message_emission()
+            bus.add_signal_watch()
+            bus.connect("message", self.msgEvent)
             self.services[self.cur_id].playPause()
     
     def hwd_id(self, i):
@@ -109,6 +112,26 @@ class Remote():
             devices[id] = dev
         return devices
 
+    def msgEvent(self, bus, message):
+        '''
+        Handles "message" events from the music player's bus
+        :param: bus Player communication bus
+        :param: message Message object from bus
+        '''
+        # if the song ends or encounters an error, try the next song
+        if ((message.type == gst.MESSAGE_EOS) or 
+                (message.type == gst.MESSAGE_ERROR)):
+            # if the TTS file is done playing, play the current song
+            if (self.services[self.cur_id].pl_TTS):
+                self.services[self.cur_id].pl_TTS = False
+                self.services[self.cur_id].play()
+            elif (self.services[self.cur_id].shuffle_TTS):
+                self.services[self.cur_id].shuffle_TTS = False
+                self.services[self.cur_id].play()
+            # else advance to the next song
+            else:
+                self.services[self.cur_id].next()
+
     def init_services(self):
         '''
         Initializes music service structures
@@ -130,25 +153,15 @@ class Remote():
             self.player = Playback.constructPlayer()
             # add services
             services.append(Playback(self.player, local_service, cachePath))
-            services.append(Playback(self.player, radio_service, cachePath))
+            # remote services, such as the radio service will constantly
+            # throw errors if there is no X11 (although they appear to work)
+            # So they are disabled if X11 is missing
+            if (os.environ.get("DISPLAY") != None):
+                services.append(
+                    Playback(self.player, radio_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
-        # TODO Other services(?)
         return services
-
-    def updateMsgEvent(self, rmSignal=True):
-        '''
-        Updates how various play-time events are handled when the playing
-            service is changed
-        :param: rmSignal Attempts to remove signal first (True by default)
-        '''
-        # music player bus to watch for events on
-        bus = self.player.get_bus()
-        if (rmSignal):
-            bus.remove_signal_watch()
-        bus.enable_sync_message_emission()
-        bus.add_signal_watch()
-        bus.connect("message", self.services[self.cur_id].msgEvent)
 
     def nextService(self):
         '''
@@ -156,13 +169,11 @@ class Remote():
         :return: New service id
         '''
         # kill current song playing
-        self.services[self.cur_id].pause()
+        self.services[self.cur_id].stop()
         if (self.cur_id == (len(self.services) - 1 )):
             self.cur_id = 0
         else:
             self.cur_id += 1
-        # update how we handle events
-        self.updateMsgEvent()
         self.services[self.cur_id].play()
         return self.cur_id
 
@@ -172,13 +183,11 @@ class Remote():
         :return: New service id
         '''
         # kill current song playing
-        self.services[self.cur_id].pause()
+        self.services[self.cur_id].stop()
         if (self.cur_id == 0):
             self.cur_id = len(self.services) - 1
         else:
             self.cur_id -= 1
-        # update how we handle events
-        self.updateMsgEvent()
         self.services[self.cur_id].play()
         return self.cur_id
 

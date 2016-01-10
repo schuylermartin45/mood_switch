@@ -89,26 +89,6 @@ class Playback:
         self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
         self.player = player
 
-    def msgEvent(self, bus, message):
-        '''
-        Handles "message" events from the music player's bus
-        :param: bus Player communication bus
-        :param: message Message object from bus
-        '''
-        # if the song ends or encounters an error, try the next song
-        if ((message.type == gst.MESSAGE_EOS) or 
-                (message.type == gst.MESSAGE_ERROR)):
-            # if the TTS file is done playing, play the current song
-            if (self.pl_TTS):
-                self.pl_TTS = False
-                self.play()
-            elif (self.shuffle_TTS):
-                self.shuffle_TTS = False
-                self.play()
-            # else advance to the next song
-            else:
-                self.next()
-
     def init_cache(self):
         '''
         Initialize and use cache info. There is a cache for each service
@@ -132,7 +112,8 @@ class Playback:
             speakFile = srvPath + pl.name + ".wav"
             if not(os.path.exists(speakFile)):
                 # write file to cache
-                mkTextSpeech("Playing playlist: " + pl.name + ".", speakFile)
+                mkTextSpeech("Playing " + self.service.plTypeTTS +" " 
+                    + pl.name + ".", speakFile)
             pl.ttsFile = "file://" + speakFile
 
     def play(self):
@@ -160,6 +141,14 @@ class Playback:
         :return: Stream uri
         '''
         self.player.set_state(gst.STATE_PAUSED)
+        return self.service.getStream(self.cur)
+
+    def stop(self):
+        '''
+        Kills the current stream
+        :return: Stream uri
+        '''
+        self.player.set_state(gst.STATE_NULL)
         return self.service.getStream(self.cur)
 
     def playPause(self):
