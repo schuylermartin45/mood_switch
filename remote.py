@@ -124,9 +124,11 @@ class Remote():
             # make services
             local_service = LocalService(self.run_dir + "local_music/")
             radio_service = RadioService()
+            # init a single player for all music services
+            player = Playback.constructPlayer()
             # add services
-            services.append(Playback(local_service, cachePath))
-            services.append(Playback(radio_service, cachePath))
+            services.append(Playback(player, local_service, cachePath))
+            services.append(Playback(player, radio_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
         # TODO Other services(?)

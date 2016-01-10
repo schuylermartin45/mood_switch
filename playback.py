@@ -37,12 +37,39 @@ class Playback:
     '''
     Class that represents the playback system
     '''
-    def __init__(self, service, cachePath):
+    @staticmethod
+    def constructPlayer():
+        '''
+        Builds a single instance of the media player; to be shared by all
+            playback instances
+        :return: GST Player object
+        '''
+        # music player object for the stream
+        player = gst.element_factory_make("playbin2", "player")
+
+        # disable any attempts at playing video content
+        # Flags: video | audio | subtitles | software volume
+        player.set_property("flags", 2)
+
+        # set playback device to bluetooth
+        alsa_card = gst.element_factory_make("alsasink", "bluetooth")
+        # Notes to self about bluetooth:
+        # - config for alsa is set is /etc/asound.conf
+        # - confic for bluetooth audio is /etc/bluetooth/audio.conf
+        # - bluetooth daemon: /etc/init.d/bluetooth 
+        # - also make sure that there are no other connections to the speaker
+        alsa_card.set_property("device", "bluetooth")
+        player.set_property("audio-sink", alsa_card)
+        return player
+        
+    def __init__(self, player, service, cachePath):
         '''
         Constructor
+        :param: player Reference to the music playback device
         :param: service Reference to service "interface" that will resolve
             service-specific concerns. A service may be a streaming system
             usic service/playback object type
+        :param: cachePath Path to caching information
         '''
         self.service = service
         self.cachePath = cachePath
@@ -60,25 +87,7 @@ class Playback:
         # ptr to current playlist (pick the first one by default)
         self.cur_id = 0
         self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
-        # music player object for the stream
-        self.player = gst.element_factory_make("playbin2", "player")
-
-        # disable any attempts at playing video content (because we lack X11)
-        #videosink = gst.element_factory_make("fakesink", "videosink")
-        #self.player.set_property("video-sink", videosink)
-        # TODO wtf?
-        # video | audio | subtitles | software volume
-        self.player.set_property("flags", 2)
-
-        # set playback device to bluetooth
-        alsa_card = gst.element_factory_make("alsasink", "bluetooth")
-        # Notes to self about bluetooth:
-        # - config for alsa is set is /etc/asound.conf
-        # - confic for bluetooth audio is /etc/bluetooth/audio.conf
-        # - bluetooth daemon: /etc/init.d/bluetooth 
-        # - also make sure that there are no other connections to the speaker
-        alsa_card.set_property("device", "bluetooth")
-        self.player.set_property("audio-sink", alsa_card)
+        self.player = player
         # music player bus to watch for events on
         bus = self.player.get_bus()
         bus.enable_sync_message_emission()
@@ -128,7 +137,7 @@ class Playback:
             speakFile = srvPath + pl.name + ".wav"
             if not(os.path.exists(speakFile)):
                 # write file to cache
-                mkTextSpeech("Playing: " + pl.name + ".", speakFile)
+                mkTextSpeech("Playing playlist: " + pl.name + ".", speakFile)
             pl.ttsFile = "file://" + speakFile
 
     def play(self):

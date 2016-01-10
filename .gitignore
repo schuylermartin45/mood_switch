@@ -2,5 +2,6 @@ auth.file
 test_out/
 flirc_lib
 *.pyc
+*.txt
 local_music/
 .mood_switch_cache/
