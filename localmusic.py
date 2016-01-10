@@ -20,7 +20,7 @@ FILE_TYPES = ('.mp3', '.ogg', '.wav')
 
 class LocalService(MusicService):
     '''
-    Music Service class that 
+    Music Service class that handles local files
     '''
     def __init__(self, path):
         '''

@@ -14,6 +14,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 # Local imports
 from musicservice import ServiceException
 from localmusic import LocalService
+from radiomusic import RadioService
 from playback import Playback
 
 '''
@@ -120,8 +121,12 @@ class Remote():
             # make directory if missing
             if not(os.path.exists(cachePath)):
                 os.makedirs(cachePath)
+            # make services
             local_service = LocalService(self.run_dir + "local_music/")
+            radio_service = RadioService()
+            # add services
             services.append(Playback(local_service, cachePath))
+            services.append(Playback(radio_service, cachePath))
         except ServiceException:
             print("Warning: No local music found")
         # TODO Other services(?)

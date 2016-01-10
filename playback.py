@@ -62,6 +62,14 @@ class Playback:
         self.cur = self.playlists[self.playlists.keys()[self.cur_id]]
         # music player object for the stream
         self.player = gst.element_factory_make("playbin2", "player")
+
+        # disable any attempts at playing video content (because we lack X11)
+        #videosink = gst.element_factory_make("fakesink", "videosink")
+        #self.player.set_property("video-sink", videosink)
+        # TODO wtf?
+        # video | audio | subtitles | software volume
+        self.player.set_property("flags", 2)
+
         # set playback device to bluetooth
         alsa_card = gst.element_factory_make("alsasink", "bluetooth")
         # Notes to self about bluetooth:
