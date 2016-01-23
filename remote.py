@@ -57,8 +57,6 @@ class Remote():
         Constructor
         :param: run_dir Path for the local music service's directory
         '''
-        # init hardware
-        self.switch = Switch()
         self.run_dir = run_dir
         # register the music playing thread
         self.main_loop = gobject.MainLoop()
@@ -203,7 +201,7 @@ class Remote():
                     (event.value == KeyEvent.key_up)):
                 # interpret command
                 if (event.code == IR_MAP['light']):
-                    self.switch.turnSwitch()
+                    pass
                 # ignore music playing commands if there aren't any available 
                 # music services
                 if (len(self.services) > 0):
