@@ -16,6 +16,17 @@ persistent: if the bluetooth connection dies, the daemon scripts will detect
 that change and prep itself for when the Pi is reconnected to the speakers.
 This "always on" approach makes the mood switch a very convenient music system.
 
+
+**Note**: As of writing, the lightswitch feature is only partially implemented.
+I have a test script that can move the servo on the Raspberry Pi.
+However there are a few issues:
+1. The servo I purchased does not have enough torque to turn the light switch.
+2. When run as a background process/daemon, the Pi throws a GPIO exception
+indicating that access to the GPIO pins are not available. This does not happen
+if I run the program manually and indicates that the Pi prevents such access to
+the GPIO board for security concerns. I'm not sure if there is much I can do at
+this point to resolve this.
+
 ## Features
 * **Plugins**: The system is designed to have "plugin" music services via an 
 "interface". Currently there is one music service available that plays songs
